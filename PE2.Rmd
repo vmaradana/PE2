@@ -1,0 +1,91 @@
+---
+title: "Explore NOAA Storm Database for Severe Weather Patterns"
+output: html_document
+---
+#Synposis
+Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences.
+
+#Data Processing
+There should be a section titled Data Processing which describes (in words and code) how the data were loaded into R and processed for analysis. In particular, your analysis must start from the raw CSV file containing the data. You cannot do any preprocessing outside the document. If preprocessing is time-consuming you may consider using the cache = TRUE option for certain code chunks.
+##Download file and load into memory
+```{r cache=TRUE}
+noaafile<-"StormData.csv.bz2"
+download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",noaafile)
+noaadtraw<-read.csv(bzfile(noaafile))
+```
+##Data Cleansing
+```{r cache=TRUE}
+##select columns that are required fro analysis
+cols<-c("BGN_DATE","STATE","EVTYPE","FATALITIES","INJURIES","PROPDMG","PROPDMGEXP","CROPDMG","CROPDMGEXP","REFNUM")
+noaadt<-noaadtraw[,cols]
+
+##run a summary on the data
+summary(noaadt)
+```
+Some key points to note Property damage (PROPDMG) has the amounts/counts? and with showing hundreds, thousands(k) in PROPDNMGEXP. Same applies for CROP damage data. In PROPDMG about half the records have no identifier need to verify if these are counts or amounts. running below code reveals that most of the PROPDMG observations are 0.
+```{r }
+length(subset(noaadt,PROPDMG==0 & PROPDMGEXP==c(""))$PROPDMG)
+```
+Conver all the h,k,K,m for both Crop and Prop damage
+```{r}
+amtIdentifier<-data.frame(sym=c("","-","?","+","0","1","2","3","4","5","6","7","8","B","h","H","K","m","M"),
+                          conv=c(0,0,0,0,0,0,0,0,0,0,0,0,0,1000000000,100,100,1000,1000000,1000000))
+noaadtclean<-merge(noaadt,amtIdentifier,by.x="PROPDMGEXP",by.y="sym")
+##change the column name
+names(noaadtclean)[11]<-"PROPDMGEXPCONV"
+
+noaadtclean<-merge(noaadtclean,amtIdentifier,by.x="CROPDMGEXP",by.y="sym")
+##change the column name
+names(noaadtclean)[12]<-"CROPDMGEXPCONV"
+
+##now apply thousand,million multiplier to Property and Crop data
+noaadtclean[,"PROPDMG"]<-noaadtclean[,"PROPDMG"]*noaadtclean[,"PROPDMGEXPCONV"]
+noaadtclean[,"CROPDMG"]<-noaadtclean[,"CROPDMG"]*noaadtclean[,"CROPDMGEXPCONV"]
+
+##Since one the of the questions is about economic damage add the property damage and crop damage into variable
+EcoDamage<-noaadtclean[,"PROPDMG"] + noaadtclean[,"CROPDMG"]
+noaadtclean<-cbind(noaadtclean,EcoDamage)
+
+##Since one the of the questions is about Health damage add the fatalities and injuries into variable
+HealthHarm<-noaadtclean[,"INJURIES"] + noaadtclean[,"FATALITIES"]
+noaadtclean<-cbind(noaadtclean,HealthHarm)
+
+##Add a month column to see if a certin weather events is 
+noaadtclean$Month<-format(as.Date(noaadtclean[,3]), "%b")
+noaadtclean$Year<-format(as.Date(noaadtclean[,3]), "%Y")
+
+```
+
+#Analysis
+The analysis document must have at least one figure containing a plot.
+Your analyis must have no more than three figures. Figures may have multiple plots in them (i.e. panel plots), but there cannot be more than three figures total.
+
+
+#Results
+There should be a section titled Results in which your results are presented.
+Your data analysis must address the following questions:
+
+1.Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+
+2.Across the United States, which types of events have the greatest economic consequences?
+
+
+Consider writing your report as if it were to be read by a government or municipal manager who might be responsible for preparing for severe weather events and will need to prioritize resources for different types of events. However, there is no need to make any specific recommendations in your report.
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
