@@ -31,6 +31,8 @@ noaadtclean<-cbind(noaadtclean,HealthHarm)
 
 noaadtclean$Month<-format(as.Date(noaadtclean[,3],format="%m/%d/%Y"), "%b")
 noaadtclean$Year<-format(as.Date(noaadtclean[,3],format="%m/%d/%Y"), "%Y")
+library(doBy)
+sumbEventsByYear<-summaryBy(list(c("EVTYPE","EcoDamage","HealthHarm"),c("Year","EVTYPE")),noaadtclean,FUN=c(sum))
 
 ##plot(x=noaadtclean$BEG_DATE,y=noaadtclean$EVTYPE,type="h")
 
