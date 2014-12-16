@@ -7,7 +7,7 @@ summary(noaadt)
 
 amtIdentifier<-c("","?","0","2","B","k","K","m","M")
 amtIdentifier<-data.frame(sym=c("","-","?","+","0","1","2","3","4","5","6","7","8","B","h","H","K","m","M"),
-                          conv=c(0,0,0,0,0,0,0,0,0,0,0,0,0,1000000000,100,100,1000,1000000,1000000))
+                          conv=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1000000000,100,100,1000,1000000,1000000))
 
 noaadtclean<-merge(noaadt,amtIdentifier,by.x="PROPDMGEXP",by.y="sym")
 ##change the column name
@@ -32,8 +32,12 @@ noaadtclean<-cbind(noaadtclean,HealthHarm)
 noaadtclean$Month<-format(as.Date(noaadtclean[,3],format="%m/%d/%Y"), "%b")
 noaadtclean$Year<-format(as.Date(noaadtclean[,3],format="%m/%d/%Y"), "%Y")
 library(doBy)
-sumbEventsByYear<-summaryBy(list(c("EVTYPE","EcoDamage","HealthHarm"),c("Year","EVTYPE")),noaadtclean,FUN=c(sum))
+sumbEventsByYear<-summaryBy(list(c("EVTYPE","EcoDamage","HealthHarm"),c("Year","STATE","EVTYPE")),noaadtclean,FUN=c(sum,mean))
+sumbyEventsState<-summaryBy(list(c("EVTYPE","EcoDamage","HealthHarm"),c("STATE","EVTYPE")),noaadtclean,FUN=c(sum,mean))
 
+
+library(lattice)
+xyplot(HealthHarm.sum~EVTYPE|STATE,data=sumbEventsByYear,type="h",xlab="interval",ylab="average steps")
 ##plot(x=noaadtclean$BEG_DATE,y=noaadtclean$EVTYPE,type="h")
 
 

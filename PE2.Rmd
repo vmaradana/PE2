@@ -29,7 +29,7 @@ length(subset(noaadt,PROPDMG==0 & PROPDMGEXP==c(""))$PROPDMG)
 Conver all the h,k,K,m for both Crop and Prop damage
 ```{r}
 amtIdentifier<-data.frame(sym=c("","-","?","+","0","1","2","3","4","5","6","7","8","B","h","H","K","m","M"),
-                          conv=c(0,0,0,0,0,0,0,0,0,0,0,0,0,1000000000,100,100,1000,1000000,1000000))
+                          conv=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1000000000,100,100,1000,1000000,1000000))
 noaadtclean<-merge(noaadt,amtIdentifier,by.x="PROPDMGEXP",by.y="sym")
 ##change the column name
 names(noaadtclean)[11]<-"PROPDMGEXPCONV"
@@ -59,7 +59,9 @@ noaadtclean$Year<-format(as.Date(noaadtclean[,3]), "%Y")
 #Analysis
 The analysis document must have at least one figure containing a plot.
 Your analyis must have no more than three figures. Figures may have multiple plots in them (i.e. panel plots), but there cannot be more than three figures total.
-
+```{r }
+sumbEventsByYear<-summaryBy(list(c("EVTYPE","EcoDamage","HealthHarm"),c("Year","STATE","EVTYPE")),noaadtclean,FUN=c(sum,mean))
+```
 
 #Results
 There should be a section titled Results in which your results are presented.
